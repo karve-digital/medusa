@@ -43,10 +43,24 @@ const normalizeRequest = (
   if (body && headers.get("content-type")?.includes("application/json")) {
     body = JSON.stringify(body)
   }
+  let next = {}
+  // if header has nextjs tags and cache add them to the request
+  if (headers.has("next")) {
+    next = headers.get("next") || {}
+    headers.delete("next");
+  }
+
+  let cache = ""
+  if (headers.get('cache')){
+    cache = headers.get('cache') || "no-store"
+    headers.delete("cache")
+  }
 
   return {
     ...init,
     headers,
+    next,
+    cache,
     // TODO: Setting this to "include" poses some security risks, as it will send cookies to any domain. We should consider making this configurable.
     credentials: config.auth?.type === "session" ? "include" : "omit",
     ...(body ? { body: body as RequestInit["body"] } : {}),
